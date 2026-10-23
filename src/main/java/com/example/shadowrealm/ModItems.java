@@ -1,6 +1,6 @@
 package com.example.shadowrealm;
 
-import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
+import net.fabricmc.fabric.api.creativetab.v1.CreativeModeTabEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
@@ -26,7 +26,7 @@ public final class ModItems {
 	}
 
 	public static void init() {
-		ItemGroupEvents.modifyEntriesEvent(CreativeModeTabs.COMBAT)
-				.register(entries -> entries.accept(SHADOW_BLADE));
+		CreativeModeTabEvents.modifyOutputEvent(CreativeModeTabs.COMBAT)
+				.register(output -> output.accept(SHADOW_BLADE));
 	}
 }
