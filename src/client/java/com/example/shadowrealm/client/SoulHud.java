@@ -17,7 +17,7 @@ public final class SoulHud {
 	public static void register() {
 		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, ShadowRealm.id("soul_hud"), (graphics, tickCounter) -> {
 			Minecraft mc = Minecraft.getInstance();
-			if (mc.player == null || mc.options.hideGui) {
+			if (mc.player == null) {
 				return;
 			}
 			int w = mc.getWindow().getGuiScaledWidth();
