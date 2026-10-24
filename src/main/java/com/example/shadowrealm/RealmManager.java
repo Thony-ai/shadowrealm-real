@@ -89,6 +89,29 @@ public final class RealmManager {
 	private RealmManager() {
 	}
 
+	/** Tags einer Entity. Per Reflection, weil die Methode je nach Version anders heißt. */
+	@SuppressWarnings("unchecked")
+	static Set<String> tagsOf(Entity entity) {
+		for (String name : new String[]{"entityTags", "getTags"}) {
+			try {
+				Object result = entity.getClass().getMethod(name).invoke(entity);
+				if (result instanceof Set<?> set) {
+					return (Set<String>) set;
+				}
+			} catch (ReflectiveOperationException | RuntimeException ignored) {
+			}
+		}
+		return new HashSet<>();
+	}
+
+	static Optional<EntityType<?>> mobTypeOf(String key) {
+		try {
+			return net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE.getOptional(Identifier.parse(key));
+		} catch (RuntimeException e) {
+			return Optional.empty();
+		}
+	}
+
 	static MinecraftServer server() {
 		return server;
 	}
@@ -414,7 +437,7 @@ public final class RealmManager {
 	}
 
 	private static String captiveKeyOf(Entity entity) {
-		for (String tag : entity.getTags()) {
+		for (String tag : tagsOf(entity)) {
 			if (tag.startsWith(MOB_TAG)) {
 				return tag.substring(MOB_TAG.length());
 			}
@@ -480,7 +503,7 @@ public final class RealmManager {
 
 	private static void spawnRealmMob(RealmState.Entry entry) {
 		ServerLevel realm = server.getLevel(ShadowRealm.REALM);
-		Optional<EntityType<?>> type = EntityType.byString(entry.mobType);
+		Optional<EntityType<?>> type = mobTypeOf(entry.mobType);
 		if (realm == null || type.isEmpty()) {
 			return;
 		}
@@ -502,7 +525,7 @@ public final class RealmManager {
 
 	private static void spawnMobAt(RealmState.Entry entry) {
 		ServerLevel level = levelOf(entry.dim);
-		Optional<EntityType<?>> type = EntityType.byString(entry.mobType);
+		Optional<EntityType<?>> type = mobTypeOf(entry.mobType);
 		if (type.isEmpty()) {
 			return;
 		}
@@ -530,7 +553,7 @@ public final class RealmManager {
 
 	private static void removeRealmMob(String key) {
 		for (Entity entity : realmEntities()) {
-			if (entity.getTags().contains(MOB_TAG + key)) {
+			if (tagsOf(entity).contains(MOB_TAG + key)) {
 				entity.discard();
 			}
 		}

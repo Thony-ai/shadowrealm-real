@@ -407,7 +407,7 @@ public final class SoulManager {
 	}
 
 	private static boolean hasCorpseTag(Entity entity) {
-		for (String tag : entity.getTags()) {
+		for (String tag : RealmManager.tagsOf(entity)) {
 			if (tag.startsWith(CORPSE_TAG)) {
 				return true;
 			}
@@ -443,7 +443,7 @@ public final class SoulManager {
 		AABB box = new AABB(corpse.x - 16, corpse.y - 16, corpse.z - 16, corpse.x + 16, corpse.y + 16, corpse.z + 16);
 		String tag = CORPSE_TAG + corpse.id;
 		for (Entity entity : new ArrayList<>(level.getEntities((Entity) null, box))) {
-			if (!entity.getTags().contains(tag)) {
+			if (!RealmManager.tagsOf(entity).contains(tag)) {
 				continue;
 			}
 			if (entity instanceof ItemEntity item) {
