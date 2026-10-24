@@ -920,17 +920,17 @@ final class RealmBuilder {
 			}
 			// Banner
 			for (int z = 170; z <= 202; z += 8) {
-				fill(s * 33, G + 6, z - 1, s * 33, G + 22, z + 1, Blocks.PURPLE_CONCRETE);
+				fill(s * 33, G + 6, z - 1, s * 33, G + 22, z + 1, Blocks.AMETHYST_BLOCK);
 				fill(s * 33, G + 6, z, s * 33, G + 6, z, Blocks.CRYING_OBSIDIAN);
 			}
 		}
 		// Teppich und Seelenfeuer
 		for (int z = zf + 1; z <= 195; z++) {
 			for (int x = -2; x <= 2; x++) {
-				set(x, G, z, Blocks.PURPLE_CARPET);
+				set(x, G - 1, z, Blocks.AMETHYST_BLOCK);
 			}
-			set(-3, G, z, Blocks.BLACK_CARPET);
-			set(3, G, z, Blocks.BLACK_CARPET);
+			set(-3, G - 1, z, Blocks.CHISELED_POLISHED_BLACKSTONE);
+			set(3, G - 1, z, Blocks.CHISELED_POLISHED_BLACKSTONE);
 		}
 		for (int z = 168; z <= 192; z += 8) {
 			set(-7, G, z, Blocks.SOUL_CAMPFIRE);
@@ -941,7 +941,8 @@ final class RealmBuilder {
 		fill(-12, G, 198, 12, G + 1, 199, Blocks.DEEPSLATE_TILES);
 		fill(-10, G, 200, 10, G + 2, 205, Blocks.DEEPSLATE_TILES);
 		fill(-10, G + 2, 200, 10, G + 2, 205, Blocks.POLISHED_BLACKSTONE_BRICKS);
-		fill(-2, G + 2, 196, 2, G + 2, 199, Blocks.PURPLE_CARPET);
+		fill(-2, G, 196, 2, G, 197, Blocks.AMETHYST_BLOCK);
+		fill(-2, G + 1, 198, 2, G + 1, 199, Blocks.AMETHYST_BLOCK);
 		// Thron
 		set(0, G + 3, 202, Blocks.CHISELED_POLISHED_BLACKSTONE);
 		fill(-2, G + 3, 203, 2, G + 3, 203, Blocks.DEEPSLATE_TILES);
@@ -1062,7 +1063,7 @@ final class RealmBuilder {
 		}
 		for (int n = 4; n <= 44; n++) {
 			for (int z = cz - 1; z <= cz + 1; z++) {
-				set(xs(n), G, z, Blocks.PURPLE_CARPET);
+				set(xs(n), G - 1, z, Blocks.AMETHYST_BLOCK);
 			}
 		}
 		// Altar im Westen
