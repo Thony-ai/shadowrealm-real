@@ -512,12 +512,14 @@ public final class RealmManager {
 			return;
 		}
 		ThreadLocalRandom random = ThreadLocalRandom.current();
-		entity.setPos(REALM_X + random.nextDouble(-6.0, 6.0), REALM_Y, REALM_Z + random.nextDouble(-6.0, 6.0));
+		double mx = REALM_X + random.nextDouble(-6.0, 6.0);
+		double mz = REALM_Z + random.nextDouble(-6.0, 6.0);
+		double my = realm.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, (int) Math.floor(mx), (int) Math.floor(mz));
+		entity.setPos(mx, my, mz);
 		entity.setCustomName(Component.literal(entry.name));
 		entity.setCustomNameVisible(true);
 		entity.addTag(MOB_TAG + entry.key);
 		if (entity instanceof Mob mob) {
-			mob.setNoAi(true);
 			mob.setPersistenceRequired();
 		}
 		realm.addFreshEntity(entity);

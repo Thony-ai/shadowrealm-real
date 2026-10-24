@@ -385,7 +385,6 @@ public final class SoulManager {
 			if (item.tickCount <= 3 && !hasCorpseTag(item)) {
 				item.addTag(CORPSE_TAG + corpse.id);
 				item.setUnlimitedLifetime();
-				item.setNeverPickUp();
 			}
 		}
 
@@ -475,11 +474,29 @@ public final class SoulManager {
 	private static void applyGhost(ServerPlayer player) {
 		player.setGameMode(GameType.ADVENTURE);
 		player.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, MobEffectInstance.INFINITE_DURATION, 0, false, false));
+		releaseItems(player);
+	}
+
+	/** Geister tragen nichts: Aufgehobenes wird sofort wieder auf den Boden gelegt (nicht gelöscht). */
+	private static void releaseItems(ServerPlayer player) {
+		ServerLevel level = server().getLevel(player.level().dimension());
+		if (level == null) {
+			return;
+		}
 		for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
 			ItemStack stack = player.getInventory().getItem(i);
-			if (!stack.isEmpty() && !isSoulItem(stack)) {
-				player.getInventory().setItem(i, ItemStack.EMPTY);
+			if (stack.isEmpty() || isSoulItem(stack)) {
+				continue;
 			}
+			player.getInventory().setItem(i, ItemStack.EMPTY);
+			ItemEntity item = new ItemEntity(level, player.getX(), player.getY(), player.getZ(), stack);
+			item.setPickUpDelay(60);
+			RealmState.Corpse corpse = nearestCorpse(player, 8.0);
+			if (corpse != null) {
+				item.addTag(CORPSE_TAG + corpse.id);
+				item.setUnlimitedLifetime();
+			}
+			level.addFreshEntity(item);
 		}
 	}
 
@@ -497,11 +514,19 @@ public final class SoulManager {
 
 	/** Ohne Seele zurück ins Leben (Test-Befehl): am Ort. */
 	private static void restoreSoulInPlace(ServerPlayer player) {
-		RealmState.SoulInfo info = info(player);
-		info.hasSoul = true;
-		liftGhost(player);
-		state().save();
-		RealmManager.tell(player, "Du hast deine Seele zurück.");
+		returnToBody(player);
+	}
+
+	/** Seele zurück: der Spieler fährt in seinen Körper (Leiche verschwindet, Beute kommt zurück). */
+	static void returnToBody(ServerPlayer player) {
+		String uuid = id(player);
+		RealmState.Corpse corpse = corpseOf(uuid);
+		if (corpse != null) {
+			reviveAt(uuid, corpse.dim, corpse.x, corpse.y, corpse.z, takeCorpse(corpse));
+		} else {
+			reviveAt(uuid, player.level().dimension().identifier().toString(),
+					player.getX(), player.getY(), player.getZ(), new ArrayList<>());
+		}
 	}
 
 	static void onJoinOrRespawn(ServerPlayer player) {
@@ -841,6 +866,27 @@ public final class SoulManager {
 		ServerPlayNetworking.send(player, new SoulPayload(text));
 	}
 
+	private static void tickGhosts(long tick) {
+		for (ServerPlayer player : new ArrayList<>(server().getPlayerList().getPlayers())) {
+			if (!isGhost(player)) {
+				continue;
+			}
+			// Hat der Geist seine eigene Seele in der Tasche, fährt er in seinen Körper.
+			String own = info(player).name;
+			if (own != null && countSoulItems(player, own) > 0) {
+				removeSoulItems(player, own);
+				returnToBody(player);
+				continue;
+			}
+			if (tick % 20 == 0 && (!player.hasEffect(MobEffects.INVISIBILITY)
+					|| player.gameMode.getGameModeForPlayer() != GameType.ADVENTURE)) {
+				player.setGameMode(GameType.ADVENTURE);
+				player.addEffect(new MobEffectInstance(MobEffects.INVISIBILITY, MobEffectInstance.INFINITE_DURATION, 0, false, false));
+			}
+			releaseItems(player);
+		}
+	}
+
 	// ================================================================== Tick
 
 	static void tick(long tick) {
@@ -854,21 +900,11 @@ public final class SoulManager {
 		if (tick % 10 == 0) {
 			tickChests();
 		}
+		if (tick % 2 == 0) {
+			tickGhosts(tick);
+		}
 		if (tick % 20 == 0) {
 			for (ServerPlayer player : server().getPlayerList().getPlayers()) {
-				if (isGhost(player)) {
-					if (!player.hasEffect(MobEffects.INVISIBILITY)
-							|| player.gameMode.getGameModeForPlayer() != GameType.ADVENTURE) {
-						applyGhost(player);
-					} else {
-						for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-							ItemStack stack = player.getInventory().getItem(i);
-							if (!stack.isEmpty() && !isSoulItem(stack)) {
-								player.getInventory().setItem(i, ItemStack.EMPTY);
-							}
-						}
-					}
-				}
 				sync(player, false);
 			}
 		}
